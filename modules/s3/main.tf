@@ -1,3 +1,4 @@
+# SNS Topic
 data "aws_iam_policy_document" "topic" {
   statement {
     effect = "Allow"
@@ -22,10 +23,11 @@ resource "aws_sns_topic" "sample_input_topic" {
   policy = data.aws_iam_policy_document.topic.json
 }
 
+
+# S3 Bucket
 resource "aws_s3_bucket" "sample_input_bucket" {
   bucket = "tac0x2a-sample-input-bucket"
 }
-
 resource "aws_s3_bucket_notification" "sample_input_bucket_notification" {
   bucket = aws_s3_bucket.sample_input_bucket.id
 
@@ -34,4 +36,39 @@ resource "aws_s3_bucket_notification" "sample_input_bucket_notification" {
     events        = ["s3:ObjectCreated:*"]
     filter_suffix = ".log"
   }
+}
+
+# SQS
+resource "aws_sqs_queue" "sample_input_queue" {
+  name                      = "sample_input_queue"
+}
+
+data "aws_iam_policy_document" "sqs_queue" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["sns.amazonaws.com"]
+    }
+
+    actions   = ["sqs:SendMessage"]
+    resources = [aws_sqs_queue.sample_input_queue.arn]
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = [aws_sns_topic.sample_input_topic.arn]
+    }
+  }
+}
+resource "aws_sqs_queue_policy" "sample_sns2sqs_policy" {
+  queue_url = aws_sqs_queue.sample_input_queue.id
+  policy    = data.aws_iam_policy_document.sqs_queue.json
+}
+
+resource "aws_sns_topic_subscription" "sample_sns2sqs" {
+  topic_arn = aws_sns_topic.sample_input_topic.arn
+  protocol  = "sqs"
+  endpoint  = aws_sqs_queue.sample_input_queue.arn
 }
