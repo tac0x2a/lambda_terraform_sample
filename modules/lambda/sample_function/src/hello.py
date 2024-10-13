@@ -1,8 +1,11 @@
 import logging
-import json
+
+logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
+
 
 def handler(event, context):
-  logging.warning(f"Event: {event}")
-  logging.warning(f"Context: {context}")
+    logging.info(f"Event: {event}")
+    logging.info(f"Context: {context}")
 
-  return 42
+    return 42

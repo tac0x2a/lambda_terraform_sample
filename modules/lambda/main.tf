@@ -11,9 +11,34 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
+data "aws_iam_policy_document" "inline_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+    resources = ["arn:aws:logs:*:*:*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:UpdateItem",
+    ]
+    resources = [aws_dynamodb_table.sample-dynamodb-table.arn]
+  }
+}
+
+
 resource "aws_iam_role" "iam_for_lambda" {
   name               = "iam_for_lambda"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  inline_policy {
+    name = "inline_policy"
+    policy = data.aws_iam_policy_document.inline_policy.json
+  }
 }
 
 data "archive_file" "lambda" {
@@ -33,6 +58,8 @@ resource "aws_lambda_function" "test_lambda" {
   runtime = "python3.12"
 
   environment {
-    variables = {}
+    variables = {
+      DYNAMODB_TABLE_NAME = aws_dynamodb_table.sample-dynamodb-table.name
+    }
   }
 }
