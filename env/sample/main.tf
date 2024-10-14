@@ -6,3 +6,7 @@ module "lambda_sample" {
 module "s3_sample" {
   source = "../../modules/s3/"
 }
+
+module "x-ray_sample" {
+  source = "../../modules/x-ray_sample/"
+}
