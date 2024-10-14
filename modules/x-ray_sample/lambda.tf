@@ -42,8 +42,18 @@ resource "aws_iam_role" "iam_for_x-ray_lambda" {
 }
 
 data "archive_file" "x-ray_lambda" {
-  type        = "zip"
-  source_dir  = "${path.module}/src/"
+  type = "zip"
+
+  dynamic "source" {
+    for_each = toset([
+      "sample.py"
+    ])
+
+    content {
+      content  = file("${path.module}/src/${source.value}")
+      filename = basename(source.value)
+    }
+  }
   output_path = "/tmp/x-ray_sample/x-ray_sample_payload.zip"
 }
 
