@@ -2,12 +2,12 @@
 data "aws_iam_policy_document" "sns_topic_service_role_policy" {
   statement {
     effect = "Allow"
-    actions   = [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:PutMetricFilter",
-        "logs:PutRetentionPolicy"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:PutMetricFilter",
+      "logs:PutRetentionPolicy"
     ]
     resources = ["*"]
   }
@@ -22,13 +22,13 @@ resource "aws_iam_role" "sns_topic_service_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "sns.amazonaws.com"
-        }
-      }]
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Sid    = ""
+      Principal = {
+        Service = "sns.amazonaws.com"
+      }
+    }]
   })
 }
 
@@ -55,8 +55,8 @@ resource "aws_sns_topic" "sample_input_topic" {
   name   = "s3-event-notification-topic"
   policy = data.aws_iam_policy_document.topic.json
 
-  sqs_failure_feedback_role_arn = aws_iam_role.sns_topic_service_role.arn
-  sqs_success_feedback_role_arn = aws_iam_role.sns_topic_service_role.arn
+  sqs_failure_feedback_role_arn    = aws_iam_role.sns_topic_service_role.arn
+  sqs_success_feedback_role_arn    = aws_iam_role.sns_topic_service_role.arn
   sqs_success_feedback_sample_rate = 100
 }
 
@@ -69,14 +69,14 @@ resource "aws_s3_bucket_notification" "sample_input_bucket_notification" {
   bucket = aws_s3_bucket.sample_input_bucket.id
 
   topic {
-    topic_arn     = aws_sns_topic.sample_input_topic.arn
-    events        = ["s3:ObjectCreated:*"]
+    topic_arn = aws_sns_topic.sample_input_topic.arn
+    events    = ["s3:ObjectCreated:*"]
   }
 }
 
 # SQS
 resource "aws_sqs_queue" "sample_input_queue" {
-  name                      = "sample_input_queue"
+  name = "sample_input_queue"
 }
 
 data "aws_iam_policy_document" "sqs_queue" {
